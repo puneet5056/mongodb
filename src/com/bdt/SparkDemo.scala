@@ -5,7 +5,7 @@ package com.bdt
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import scala.tools.nsc.interpreter.Logger
-
+import 	com.mongodb.spark.MongoSpark
 
 object SparkDemo {
   
@@ -38,46 +38,34 @@ object SparkDemo {
      */
     
    
-    
+  /*  
     val spark=SparkSession.
               builder()
               .appName("SparkDemo1")
               .config(conf)
               .getOrCreate()
+              */
+      
+    val spark = SparkSession.builder()
+      .master("local")
+      .appName("MongoSparkConnectorIntro")
+      .config(conf)
+      .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/test.myCollection")
+      .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/test.myCollection")
+      .getOrCreate()
               
-     val sc=spark.sparkContext   
-     
-     import spark.implicits._
-     
-     //cleansing or  working with RDD
-     //in spark session we can only create DF or DS 
-     
-     val inputRDD=sc.textFile("D:/spark.txt");
+     //val sc=spark.sparkContext 
      
      
-     inputRDD.foreach(println)
-     
-   inputRDD.filter(line=> !line.contains("id,name,sal")).map(line=>(line.split(",")(0),
-     line.split(",")(1),line.split(",")(2),line.split(",")(3))).foreach(println)
-     
-     
-     val empDF= inputRDD.filter(line=> !line.contains("id,name,sal")).map(line=>(line.split(",")(0),
-     line.split(",")(1),line.split(",")(2),line.split(",")(3))).toDF("id","name","sal","dept")
+   val df = MongoSpark.load(spark)
+   
+   
+   df.show()
+/*logger.info(df.show())
+logger.info("Reading documents from Mongo : OK")*/
      
      
-     empDF.printSchema()
-     empDF.show()
-     
-     
-     
-     
-     empDF.createOrReplaceTempView("emp_table")
-     val empDF1=spark.sql("select id,name,sal+100 as sal1,dept from emp_table")
-     empDF1.show()
-     
-     
-     
-     
+    
      
   }
   
